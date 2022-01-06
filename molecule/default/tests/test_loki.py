@@ -97,6 +97,7 @@ def get_vars(host):
 
     return result
 
+
 @pytest.mark.parametrize("dirs", [
     "/etc/loki",
 ])
