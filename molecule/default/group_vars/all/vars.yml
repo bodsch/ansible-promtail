@@ -1,0 +1,42 @@
+---
+
+promtail_config_server:
+  http_listen_address: "127.0.0.1"
+  http_listen_port: 9080
+  log_level: debug
+
+promtail_config_scrape_configs:
+  # example static config
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          host: "{{ ansible_fqdn }}"
+          agent: promtail
+          __path__: /var/log/*log
+
+  # example journald config
+  - job_name: journal
+    journal:
+      max_age: 12h
+      labels:
+        job: systemd-journal
+    relabel_configs:
+      - source_labels:
+          - __journal__systemd_unit
+        target_label: 'unit'
+
+  # example syslog config
+  - job_name: syslog
+    syslog:
+      listen_address: 0.0.0.0:1514
+      labels:
+        job: "syslog"
+    relabel_configs:
+      - source_labels:
+          - __syslog_message_hostname
+        target_label: 'host'
+
+...

@@ -1,0 +1,35 @@
+---
+
+promtail_main_version: "{{ promtail_version[0:3] }}"
+
+promtail_install_path: /usr/local/bin/promtail/{{ promtail_version }}
+
+promtail_local_tmp_directory: "{{
+  lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+  default(lookup('env', 'HOME') ~ '/.cache/ansible/promtail', true) }}/{{ promtail_version }}"
+
+promtail_packages:
+  - promtail
+
+promtail_requirements:
+  - iproute2
+
+promtail_defaults_server:
+  http_listen_address: "127.0.0.1"
+  http_listen_port: 9080
+  grpc_listen_address: "127.0.0.1"
+  grpc_listen_port: 0
+  log_level: info
+
+promtail_defaults_clients:
+  - url: "http://127.0.0.1:3100/loki/api/v1/push"
+
+promtail_defaults_positions:
+  filename: "{{ promtail_storage_dir }}/positions.yml"
+
+promtail_defaults_targets:
+  sync_period: "10s"
+
+systemd_lib_directory: /lib/systemd/system
+
+...

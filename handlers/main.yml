@@ -1,0 +1,21 @@
+---
+
+- name: restart promtail
+  become: true
+  service:
+    name: promtail
+    state: restarted
+
+- name: reload promtail
+  become: true
+  service:
+    name: promtail
+    state: reloaded
+
+- name: daemon-reload
+  become: true
+  systemd:
+    daemon_reload: true
+    force: true
+
+...

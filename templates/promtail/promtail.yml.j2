@@ -1,0 +1,10 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+server:
+  {{ promtail_server | to_nice_yaml(indent=2) | indent(2, False) }}
+
+{% include('promtail.d/positions.j2') %}
+{% include('promtail.d/clients.j2') %}
+{% include('promtail.d/scrape_configs.j2') %}
+{% include('promtail.d/target_config.j2') %}

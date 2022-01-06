@@ -1,0 +1,5 @@
+{% if promtail_targets is defined and promtail_targets | count > 0 %}
+target_config:
+  {{ promtail_targets | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}
+

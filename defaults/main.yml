@@ -1,0 +1,34 @@
+---
+
+promtail_version: "2.4.1"
+promtail_release_download_url: https://github.com/grafana/loki/releases
+
+promtail_system_user: promtail
+promtail_system_group: promtail
+promtail_config_dir: /etc/promtail
+promtail_storage_dir: /var/lib/promtail
+
+# https://grafana.com/docs/loki/latest/clients/promtail/configuration/#server
+promtail_server: {}
+
+# https://grafana.com/docs/loki/latest/clients/promtail/configuration/#server
+promtail_clients: []
+
+# https://grafana.com/docs/loki/latest/clients/promtail/configuration/#positions
+promtail_positions: {}
+
+# https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs
+promtail_scrape_configs: []
+
+# https://grafana.com/docs/loki/latest/clients/promtail/configuration/#target_config
+promtail_targets: {}
+
+# promtail_config_include_default_file_sd_config: True
+# promtail_config_default_file_sd_config:
+#   - job_name: file_sd
+#     file_sd_configs:
+#       - files:
+#         - "{{ promtail_config_dir }}//file_sd/*.yml"
+#         - "{{ promtail_config_dir }}//file_sd/*.yaml"
+#         - "{{ promtail_config_dir }}//file_sd/*.json"
+...

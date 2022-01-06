@@ -1,0 +1,22 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description = Promtail is an agent which tails log files and pushes them to Loki.
+After       = network-online.target
+
+[Service]
+Type        = simple
+Environment = "GOMAXPROCS={{ ansible_processor_vcpus | default(ansible_processor_count) }}"
+User        = {{ promtail_system_user }}
+Group       = {{ promtail_system_group }}
+WorkingDirectory = {{ promtail_storage_dir }}
+ExecReload  = /bin/kill -HUP $MAINPID
+ExecStart   = /usr/bin/promtail \
+  -config.file {{ promtail_config_dir }}/promtail.yml
+
+LimitNOFILE = 65000
+SyslogIdentifier = promtail
+Restart     = always
+
+[Install]
+WantedBy    = multi-user.target

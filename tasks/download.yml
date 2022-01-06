@@ -1,0 +1,57 @@
+---
+
+- name: download promtail binary to local folder
+  become: false
+  delegate_to: 127.0.0.1
+  get_url:
+    url: "{{ promtail_release_download_url }}/download/v{{ promtail_version }}/promtail-linux-amd64.zip"
+    dest: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64.zip"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+
+- name: extract promtail archive
+  become: false
+  delegate_to: 127.0.0.1
+  unarchive:
+    src: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64.zip"
+    dest: "{{ promtail_local_tmp_directory }}/"
+    copy: false
+
+- name: detect binary file for promtail
+  become: false
+  delegate_to: 127.0.0.1
+  stat:
+    path: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64"
+  register: stat_file_binary
+
+- block:
+    - name: propagate promtail binaries
+      copy:
+        src: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64"
+        dest: "{{ promtail_install_path }}/promtail"
+        mode: 0755
+        owner: "{{ promtail_system_user }}"
+        group: "{{ promtail_system_group }}"
+
+    - name: make files executable
+      file:
+        path: "{{ promtail_install_path }}/promtail"
+        mode: 0755
+        owner: "{{ promtail_system_user }}"
+        group: "{{ promtail_system_group }}"
+  when:
+    - stat_file_binary.stat.exists
+
+- name: create link to binary
+  file:
+    src: "{{ promtail_install_path }}/promtail"
+    dest: /usr/bin/promtail
+    state: link
+    force: true
+  notify:
+    - restart promtail
+
+...

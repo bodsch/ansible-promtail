@@ -1,0 +1,7 @@
+scrape_configs:
+{% if promtail_config_include_default_file_sd_config is defined and promtail_config_include_default_file_sd_config %}
+  {{ promtail_config_default_file_sd_config | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}
+{% if promtail_scrape_configs is defined and promtail_scrape_configs | count > 0 %}
+  {{ promtail_scrape_configs | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}

@@ -1,0 +1,4 @@
+{% if promtail_positions is defined and promtail_positions | count > 0 %}
+positions:
+  {{ promtail_positions | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}
