@@ -36,6 +36,8 @@ jobs:
 
   arch:
     name: "${{ matrix.image }} / python: ${{ matrix.python-version }}, ansible: ${{ matrix.ansible-version }}"
+    needs:
+      - lint
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
@@ -75,6 +77,8 @@ jobs:
 
   deb:
     name: "${{ matrix.image }} / python: ${{ matrix.python-version }}, ansible: ${{ matrix.ansible-version }}"
+    needs:
+      - lint
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
@@ -116,6 +120,8 @@ jobs:
 
   rpm:
     name: "${{ matrix.image }} / python: ${{ matrix.python-version }}, ansible: ${{ matrix.ansible-version }}"
+    needs:
+      - lint
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
