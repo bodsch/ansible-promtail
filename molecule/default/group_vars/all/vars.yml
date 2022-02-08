@@ -5,7 +5,7 @@ promtail_config_server:
   http_listen_port: 9080
   log_level: debug
 
-promtail_config_scrape_configs:
+promtail_scrape_configs:
   # example static config
   - job_name: system
     static_configs:

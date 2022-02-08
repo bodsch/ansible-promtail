@@ -28,6 +28,38 @@
     state: present
 
 - name: detect installed promtail version
+  shell: |
+    promtail --version | head -n1 | cut -d ' ' -f3
+  register: _promtail_version
+  check_mode: false
+  ignore_errors: true
+
+- name: detect our installation path '{{ promtail_install_path | dirname }}'
+  ansible.builtin.stat:
+    path: "{{ promtail_install_path | dirname }}"
+    get_checksum: false
+  register: stat_promtail_path
+  ignore_errors: true
+
+- name: old installation
+  block:
+    - name: stop old service
+      service:
+        name: promtail
+        state: stopped
+        enabled: false
+
+    - name: remove installed promtail
+      file:
+        state: absent
+        path: "{{ stat_promtail_path.stat.path }}"
+  when:
+    - stat_promtail_path is defined
+    - stat_promtail_path.stat is defined
+    - stat_promtail_path.stat.islnk is defined
+    - stat_promtail_path.stat.islnk
+
+- name: detect installed promtail version
   stat:
     path: "{{ promtail_install_path }}/promtail"
   register: stat_promtail_binary

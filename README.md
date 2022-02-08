@@ -4,7 +4,7 @@
 Ansible role to setup [promtail](https://grafana.com/docs/loki/latest/clients/promtail/).
 
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-promtail)][ci]
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-promtail/2.4.x)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-promtail)][issues]
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-promtail)][releases]
 
@@ -21,10 +21,14 @@ Ansible role to setup [promtail](https://grafana.com/docs/loki/latest/clients/pr
 
 Tested on
 
-* Debian 10 / 11
-* Ubuntu 20.10
-* CentOS 8
-* Oracle Linux 8
+* Debian based
+    - Debian 10 / 11
+    - Ubuntu 20.10
+* RedHat based
+    - CentOS 8 (**not longer supported**)
+    - Alma Linux 8
+    - Rocky Linux 8
+    - Oracle Linux 8
 * Arch Linux
 
 ## usage
