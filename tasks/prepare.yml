@@ -32,10 +32,11 @@
     promtail --version | head -n1 | cut -d ' ' -f3
   register: _promtail_version
   check_mode: false
+  changed_when: false
   ignore_errors: true
 
 - name: detect our installation path '{{ promtail_install_path | dirname }}'
-  ansible.builtin.stat:
+  stat:
     path: "{{ promtail_install_path | dirname }}"
     get_checksum: false
   register: stat_promtail_path
