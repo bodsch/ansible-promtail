@@ -60,7 +60,7 @@
     - stat_promtail_path.stat.islnk is defined
     - stat_promtail_path.stat.islnk
 
-- name: detect installed promtail version
+- name: detect installed promtail binary
   stat:
     path: "{{ promtail_install_path }}/promtail"
   register: stat_promtail_binary

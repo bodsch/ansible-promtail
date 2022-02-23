@@ -7,5 +7,5 @@
     NETRC: ''
 
   roles:
-    - role: loki
+    # - role: nginx
     - role: ansible-promtail

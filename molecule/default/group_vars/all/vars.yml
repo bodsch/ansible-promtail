@@ -1,6 +1,6 @@
 ---
 
-promtail_config_server:
+promtail_server:
   http_listen_address: "127.0.0.1"
   http_listen_port: 9080
   log_level: debug
@@ -15,7 +15,7 @@ promtail_scrape_configs:
           job: varlogs
           host: "{{ ansible_fqdn }}"
           agent: promtail
-          __path__: /var/log/*log
+          __path__: /var/log/*.log
 
   # example journald config
   - job_name: journal
@@ -39,4 +39,78 @@ promtail_scrape_configs:
           - __syslog_message_hostname
         target_label: 'host'
 
+  - job_name: nginx_access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          host: "{{ ansible_fqdn }}"
+          log_level: access
+          agent: promtail
+          __path__: /var/log/nginx/*/access.log
+    pipeline_stages:
+      # anonymisier latest octet
+      - replace:
+          expression: '(?:[0-9]{1,3}\.){3}([0-9]{1,3})'
+          replace: '***'
+
+  - job_name: nginx_error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          host: "{{ ansible_fqdn }}"
+          log_level: error
+          agent: promtail
+          env: development
+          __path__: /var/log/nginx/*/error.log
+
+    pipeline_stages:
+      - match:
+          selector: '{log_level="error"}'
+          stages:
+          # parse error.log
+          - regex:
+              expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2}\ \d{2}:\d{2}:\d{2})\ \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\]\ (?P<process_id>\d+)\#(?P<thread_id>\d+):\ \*(?P<connection_id>\d+)\ (?P<error>.+?)(?:\ while\ (?P<context>.+?))?,\ client:\ (?P<client_ip>\d+\.\d+\.\d+\.\d+),\ server:\ (?P<server>.+?)(?:,\ request:\ \"(?P<request_method>[A-Z]+?)\ (?P<request_path>\/.+?)\ (?P<request_protocol>.+?)\")?(?:,\ upstream:\ \"(?P<upstream>.+?)\")?(?:,\ host:\ \"(?P<host>.+?)\")?(?:,\ referrer:\ \"(?P<referrer>.+?)\")?$'
+          - labels:
+              timestamp:
+              severity:
+              process_id:
+              thread_id:
+              connection_id:
+              error:
+              context:
+              client_ip:
+              server:
+              request_method:
+              request_path:
+              request_protocol:
+              upstream:
+              host:
+              referrer:
+
 ...
+
+# https://regex101.com/r/oPEqMk/1
+#     ^(?P<timestamp>\d{4}/\d{2}/\d{2}\ \d{2}:\d{2}:\d{2})
+#     \ \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\]
+#     \ (?P<process_id>\d+)
+#     \#(?P<thread_id>\d+):
+#     \ \*(?P<connection_id>\d+)
+#     \ (?P<error>.+?)
+#     (?:\ while\ (?P<context>.+?))?
+#     ,\ client:\ (?P<client_ip>\d+\.\d+\.\d+\.\d+)
+#     ,\ server:\ (?P<server>.+?)
+#     (?:,\ request:\ \"(?P<request_method>[A-Z]+?)
+#         \ (?P<request_path>\/.+?)
+#         \ (?P<request_protocol>.+?)\")?
+#     (?:,\ upstream:\ \"(?P<upstream>.+?)\")?
+#     (?:,\ host:\ \"(?P<host>.+?)\")?
+#     (?:,\ referrer:\ \"(?P<referrer>.+?)\")?
+#     $
+
+
+
+
