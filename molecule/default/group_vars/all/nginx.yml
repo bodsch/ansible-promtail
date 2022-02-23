@@ -1,0 +1,138 @@
+---
+
+nginx_server_tokens: "off"
+nginx_multi_accept: 'on'
+
+nginx_remove_default_vhost: true
+
+nginx_extra_http_options: |
+  proxy_buffering        off;
+  proxy_set_header       X-Real-IP $remote_addr;
+  proxy_set_header       X-Scheme $scheme;
+  proxy_set_header       X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header       Host $http_host;
+  types_hash_max_size    1024;
+  types_hash_bucket_size 512;
+
+  map_hash_max_size      128;
+  map_hash_bucket_size   128;
+
+  map $http_user_agent $excluded_ua {
+    # ~Googlebot        0;
+    ~monitoring-plugin 0;
+    default            1;
+  }
+
+  map $remote_addr $ip_anonym {
+     "~(?P<ip>(\d+)\.(\d+))\.\d+\.\d+" $ip;
+     "~(?P<ip>[^:]+:[^:]+):"           $ip;
+     default 0.0;
+  }
+
+  map $remote_addr $remote_addr_anon {
+    ~(?P<ip>\d+\.\d+)\.         $ip.0.0;
+    ~(?P<ip>[^:]+:[^:]+):       $ip::;
+    default                     0.0.0.0;
+  }
+
+  log_format json_analytics escape=json '{'
+    '"msec": "$msec", '                                         # request unixtime in seconds with a milliseconds resolution
+    '"connection": "$connection", '                             # connection serial number
+    '"connection_requests": "$connection_requests", '           # number of requests made in connection
+    '"pid": "$pid", '                                           # process pid
+    '"request_id": "$request_id", '                             # the unique request id
+    '"request_length": "$request_length", '                     # request length (including headers and body)
+    '"remote_addr": "$remote_addr", '                           # client IP
+    '"remote_user": "$remote_user", '                           # client HTTP username
+    '"remote_port": "$remote_port", '                           # client port
+    '"time_local": "$time_local", '
+    '"time_iso8601": "$time_iso8601", '                         # local time in the ISO 8601 standard format
+    '"request": "$request", '                                   # full path no arguments if the request
+    '"uri": "$uri", '                                           #
+    '"request_uri": "$request_uri", '                           # full path and arguments if the request
+    '"args": "$args", '                                         # args
+    '"status": "$status", '                                     # response status code
+    '"body_bytes_sent": "$body_bytes_sent", '                   # the number of body bytes exclude headers sent to a client
+    '"bytes_sent": "$bytes_sent", '                             # the number of bytes sent to a client
+    '"http_referer": "$http_referer", '                         # HTTP referer
+    '"http_user_agent": "$http_user_agent", '                   # user agent
+    '"http_x_forwarded_for": "$http_x_forwarded_for", '         # http_x_forwarded_for
+    '"http_x_forwarded_proto": "$http_x_forwarded_proto", '     # http_x_forwarded_proto
+    '"http_host": "$http_host", '                               # the request Host: header
+    '"server_name": "$server_name", '                           # the name of the vhost serving the request
+    '"request_time": "$request_time", '                         # request processing time in seconds with msec resolution
+    '"upstream": "$upstream_addr", '                            # upstream backend server for proxied requests
+    '"upstream_connect_time": "$upstream_connect_time", '       # upstream handshake time incl. TLS
+    '"upstream_header_time": "$upstream_header_time", '         # time spent receiving upstream headers
+    '"upstream_response_time": "$upstream_response_time", '     # time spend receiving upstream body
+    '"upstream_response_length": "$upstream_response_length", ' # upstream response length
+    '"upstream_cache_status": "$upstream_cache_status", '       # cache HIT/MISS where applicable
+    '"ssl_protocol": "$ssl_protocol", '                         # TLS protocol
+    '"ssl_cipher": "$ssl_cipher", '                             # TLS cipher
+    '"scheme": "$scheme", '                                     # http or https
+    '"request_method": "$request_method", '                     # request method
+    '"server_protocol": "$server_protocol", '                   # request protocol, like HTTP/1.1 or HTTP/2.0
+    '"pipe": "$pipe", '                                         # "p" if request was pipelined, "." otherwise
+    '"gzip_ratio": "$gzip_ratio", '
+    '"http_cf_ray": "$http_cf_ray"'
+  '}';
+
+
+nginx_vhosts:
+  - server_name: default
+    state: absent
+    listen: 80 default_server
+
+    filename: 00-default
+
+    root: /var/www/default
+    index: index.html
+
+    access_log: /var/log/nginx/access.log json_analytics if=$excluded_ua
+    error_log:  /var/log/nginx/error.log
+
+  - server_name: tattoo-hamburg.com www.tattoo-hamburg.com
+    listen: 80
+    filename: 10-tattoo-hamburg.com
+
+    root: /srv/www/tattoo-hamburg.com/htdocs/www
+    index: index.html
+    access_log: /var/log/nginx/tattoo-hamburg.com_access.log json_analytics
+    error_log: /var/log/nginx/tattoo-hamburg.com_error.log
+    extra_parameters: |
+      location / {
+        try_files $uri $uri/ /index.html;
+      }
+      # -------------------------------------------------------------------
+      # include modules.d/00-restrictions.conf;
+      # include modules.d/01-static-resources.conf;
+      # include modules.d/02-file-cache.conf;
+      # include modules.d/03-proxy.conf;
+      # include modules.d/04-compression.conf;
+      # include modules.d/11-header.conf;
+      # -------------------------------------------------------------------
+    state: present
+
+  - server_name: piercing-hamburg.com www.piercing-hamburg.com
+    listen: 80
+    filename: 10-piercing-hamburg.com
+
+    root: /srv/www/piercing-hamburg.com/htdocs/www
+    index: index.html
+    access_log: /var/log/nginx/piercing-hamburg.com_access.log json_analytics
+    error_log: /var/log/nginx/piercing-hamburg.com_error.log
+    extra_parameters: |
+      location / {
+        try_files $uri $uri/ /index.html;
+      }
+      # -------------------------------------------------------------------
+      # include modules.d/00-restrictions.conf;
+      # include modules.d/01-static-resources.conf;
+      # include modules.d/02-file-cache.conf;
+      # include modules.d/03-proxy.conf;
+      # include modules.d/04-compression.conf;
+      # include modules.d/11-header.conf;
+      # -------------------------------------------------------------------
+    state: present
+
+...

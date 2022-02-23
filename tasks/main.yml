@@ -5,6 +5,8 @@
 
 - name: download archive
   include_tasks: download.yml
+  when:
+    - not stat_promtail_binary.stat.exists
 
 - name: install
   include_tasks: install.yml

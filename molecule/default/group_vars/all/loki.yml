@@ -1,5 +1,6 @@
 ---
 
-loki_auth_enabled: false
+loki_config_server:
+  log_level: debug
 
 ...

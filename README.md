@@ -4,7 +4,7 @@
 Ansible role to setup [promtail](https://grafana.com/docs/loki/latest/clients/promtail/).
 
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-promtail/2.4.x)][ci]
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-promtail/CI)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-promtail)][issues]
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-promtail)][releases]
 

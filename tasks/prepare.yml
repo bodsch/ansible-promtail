@@ -22,6 +22,15 @@
   package:
     update_cache: true
 
+- name: define delegate instance for download handling
+  set_fact:
+    promtail_delegate_to: "{{ ansible_host }}"
+    promtail_local_tmp_directory: "{{
+        lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+        default('/var/cache/ansible/promtail', true) }}/{{ promtail_version }}"
+  when:
+    - promtail_direct_download
+
 - name: install dependency
   package:
     name: "{{ promtail_requirements }}"
@@ -60,36 +69,36 @@
     - stat_promtail_path.stat.islnk is defined
     - stat_promtail_path.stat.islnk
 
-- name: detect installed promtail version
+- name: detect installed promtail binary
   stat:
     path: "{{ promtail_install_path }}/promtail"
   register: stat_promtail_binary
 
-- name: create local tmp directory
+- name: create download directory
   become: false
-  delegate_to: 127.0.0.1
+  delegate_to: "{{ promtail_delegate_to }}"
   file:
     path: "{{ promtail_local_tmp_directory }}"
     state: directory
     mode: 0750
 
-- name: create promtail group
-  group:
-    name: "{{ promtail_system_group }}"
-    state: present
-    system: true
-  when:
-    - promtail_system_group != "root"
+- name: user and group handling
+  block:
+    - name: create promtail group
+      group:
+        name: "{{ promtail_system_group }}"
+        state: present
+        system: true
 
-- name: create promtail user
-  user:
-    name: "{{ promtail_system_user }}"
-    groups: "{{ promtail_system_group }}"
-    append: true
-    shell: /usr/sbin/nologin
-    system: true
-    createhome: false
-    home: /nonexistent
+    - name: create promtail user
+      user:
+        name: "{{ promtail_system_user }}"
+        groups: "{{ promtail_system_group }}"
+        append: true
+        shell: /usr/sbin/nologin
+        system: true
+        createhome: false
+        home: /nonexistent
   when:
     - promtail_system_user != "root"
 

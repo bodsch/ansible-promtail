@@ -147,7 +147,7 @@ def test_open_port(host, get_vars):
 
     pp_json(get_vars)
 
-    server = get_vars.get("promtail_config_server")
+    server = get_vars.get("promtail_server")
 
     print(server)
 

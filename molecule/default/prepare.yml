@@ -7,6 +7,12 @@
     NETRC: ''
 
   pre_tasks:
+    - name: update pacman system
+      command: |
+        pacman --refresh --sync --sysupgrade --noconfirm
+      when:
+        - ansible_distribution | lower == 'archlinux'
+
     - debug:
         msg:
           - "os family            : {{ ansible_distribution }} ({{ ansible_os_family }})"
@@ -15,4 +21,5 @@
           - "python version       : {{ ansible_python.version.major }}.{{ ansible_python.version.minor }}"
 
   roles:
+    - role: nginx
     - role: loki
