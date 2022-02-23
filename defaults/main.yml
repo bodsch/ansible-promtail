@@ -8,6 +8,8 @@ promtail_system_group: promtail
 promtail_config_dir: /etc/promtail
 promtail_storage_dir: /var/lib/promtail
 
+promtail_direct_download: false
+
 # https://grafana.com/docs/loki/latest/clients/promtail/configuration/#server
 promtail_server: {}
 

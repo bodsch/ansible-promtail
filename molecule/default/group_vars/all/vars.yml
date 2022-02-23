@@ -48,7 +48,7 @@ promtail_scrape_configs:
           host: "{{ ansible_fqdn }}"
           log_level: access
           agent: promtail
-          __path__: /var/log/nginx/*/access.log
+          __path__: /var/log/nginx/*access.log
     pipeline_stages:
       # anonymisier latest octet
       - replace:
@@ -65,7 +65,7 @@ promtail_scrape_configs:
           log_level: error
           agent: promtail
           env: development
-          __path__: /var/log/nginx/*/error.log
+          __path__: /var/log/nginx/*error.log
 
     pipeline_stages:
       - match:

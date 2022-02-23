@@ -14,6 +14,6 @@
           - "ansible version      : {{ ansible_version.full }}"
           - "python version       : {{ ansible_python.version.major }}.{{ ansible_python.version.minor }}"
 
-  roles:
-    - role: nginx
-    - role: loki
+  # roles:
+  #   - role: nginx
+  #   - role: loki

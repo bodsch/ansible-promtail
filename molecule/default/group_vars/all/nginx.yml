@@ -97,8 +97,8 @@ nginx_vhosts:
 
     root: /srv/www/tattoo-hamburg.com/htdocs/www
     index: index.html
-    access_log: /var/log/nginx/tattoo-hamburg.com/access.log json_analytics
-    error_log: /var/log/nginx/tattoo-hamburg.com/error.log
+    access_log: /var/log/nginx/tattoo-hamburg.com_access.log json_analytics
+    error_log: /var/log/nginx/tattoo-hamburg.com_error.log
     extra_parameters: |
       location / {
         try_files $uri $uri/ /index.html;
@@ -119,8 +119,8 @@ nginx_vhosts:
 
     root: /srv/www/piercing-hamburg.com/htdocs/www
     index: index.html
-    access_log: /var/log/nginx/piercing-hamburg.com/access.log json_analytics
-    error_log: /var/log/nginx/piercing-hamburg.com/error.log
+    access_log: /var/log/nginx/piercing-hamburg.com_access.log json_analytics
+    error_log: /var/log/nginx/piercing-hamburg.com_error.log
     extra_parameters: |
       location / {
         try_files $uri $uri/ /index.html;
