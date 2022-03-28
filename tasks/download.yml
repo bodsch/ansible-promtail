@@ -27,6 +27,12 @@
     path: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64"
   register: stat_file_binary
 
+- name: fail when extracted binary are missing
+  fail:
+    msg: "missing extracted binary on ansible controller"
+  when:
+    - not stat_file_binary.stat.exists
+
 - block:
     - name: propagate promtail binaries
       copy:
