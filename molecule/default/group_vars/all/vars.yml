@@ -6,6 +6,13 @@ promtail_server:
   log_level: debug
 
 promtail_scrape_configs:
+  # file_sd
+  - job_name: file_sd
+    file_sd_configs:
+      - files:
+        - "{{ promtail_config_dir }}//file_sd/*.yml"
+        - "{{ promtail_config_dir }}//file_sd/*.yaml"
+        - "{{ promtail_config_dir }}//file_sd/*.json"
   # example static config
   - job_name: system
     static_configs:

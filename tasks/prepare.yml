@@ -66,8 +66,11 @@
   when:
     - stat_promtail_path is defined
     - stat_promtail_path.stat is defined
-    - stat_promtail_path.stat.islnk is defined
-    - stat_promtail_path.stat.islnk
+    - stat_promtail_path.stat.isdir is defined
+    - not stat_promtail_path.stat.isdir
+
+- name: flush handlers
+  meta: flush_handlers
 
 - name: detect installed promtail binary
   stat:

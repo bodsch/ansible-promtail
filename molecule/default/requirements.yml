@@ -3,7 +3,7 @@
 - name: loki
   src: https://github.com/bodsch/ansible-loki.git
   scm: git
-  # version: 1.0.0
+  version: 1.2.1
 
 - name: nginx
   # src: https://github.com/geerlingguy/ansible-role-nginx.git
