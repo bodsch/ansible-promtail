@@ -59,6 +59,11 @@
         state: stopped
         enabled: false
 
+    - name: remove installed systemd unit
+      file:
+        state: absent
+        path: /etc/systemd/system/promtail.service
+
     - name: remove installed promtail
       file:
         state: absent
