@@ -23,8 +23,8 @@ promtail_defaults_server:
   grpc_listen_port: 0
   log_level: info
 
-promtail_defaults_clients:
-  - url: "http://127.0.0.1:3100/loki/api/v1/push"
+promtail_defaults_clients: []
+#  - url: "http://127.0.0.1:3100/loki/api/v1/push"
 
 promtail_defaults_positions:
   filename: "{{ promtail_storage_dir }}/positions.yml"
