@@ -36,13 +36,27 @@
     name: "{{ promtail_requirements }}"
     state: present
 
-- name: detect installed promtail version
-  shell: |
-    promtail --version | head -n1 | cut -d ' ' -f3
-  register: _promtail_version
-  check_mode: false
-  changed_when: false
-  ignore_errors: true
+- block:
+    - name: get latest release
+      uri:
+        url: "https://api.github.com/repos/grafana/loki/releases/latest"
+        method: GET
+        return_content: true
+        status_code: 200
+        body_format: json
+        validate_certs: false
+        user: "{{ lookup('env', 'GH_USER') | default(omit) }}"
+        password: "{{ lookup('env', 'GH_TOKEN') | default(omit) }}"
+      # no_log: "{{ not lookup('env', 'ANSIBLE_DEBUG') | bool }}"
+      register: _latest_release
+      until: _latest_release.status == 200
+      retries: 5
+
+    - name: set promtail version to {{ _latest_release.json.tag_name[1:] }}
+      set_fact:
+        promtail_version: "{{ _latest_release.json.tag_name[1:] }}"
+  when:
+    - promtail_version == "latest"
 
 - name: detect our installation path '{{ promtail_install_path | dirname }}'
   stat:
@@ -107,6 +121,17 @@
         system: true
         createhome: false
         home: /nonexistent
+
+    - name: add user {{ promtail_system_user }} to additional groups
+      user:
+        name: "{{ promtail_system_user }}"
+        groups: "{{ item }}"
+        append: true
+        state: present
+      loop: "{{ promtail_additional_groups }}"
+      loop_control:
+        label: "add {{ promtail_system_user }} to group {{ item }}"
+
   when:
     - promtail_system_user != "root"
 
@@ -127,24 +152,11 @@
     mode: 0755
     recurse: true
 
-- name: merge promtail server configuration between defaults and custom
+- name: merge promtail configuration between defaults and custom
   set_fact:
-    promtail_server: "{{ promtail_defaults_server |
-      combine( promtail_server, recursive=True ) }}"
-
-- name: merge promtail clients configuration between defaults and custom
-  set_fact:
-    promtail_clients: "{{ promtail_defaults_clients |
-      union( promtail_clients) }}"
-
-- name: merge promtail positions configuration between defaults and custom
-  set_fact:
-    promtail_positions: "{{ promtail_defaults_positions |
-      combine( promtail_positions, recursive=True ) }}"
-
-- name: merge promtail target configuration between defaults and custom
-  set_fact:
-    promtail_targets: "{{ promtail_defaults_targets |
-      combine( promtail_targets, recursive=True ) }}"
+    promtail_server: "{{ promtail_defaults_server | combine( promtail_server, recursive=True ) }}"
+    promtail_clients: "{{ promtail_defaults_clients | union( promtail_clients) }}"
+    promtail_positions: "{{ promtail_defaults_positions | combine( promtail_positions, recursive=True ) }}"
+    promtail_targets: "{{ promtail_defaults_targets | combine( promtail_targets, recursive=True ) }}"
 
 ...

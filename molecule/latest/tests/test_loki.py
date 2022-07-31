@@ -76,19 +76,19 @@ def get_vars(host):
 
     file_defaults      = read_ansible_yaml("{}/defaults/main".format(base_dir), "role_defaults")
     file_vars          = read_ansible_yaml("{}/vars/main".format(base_dir), "role_vars")
-    file_distribution  = read_ansible_yaml("{}/vars/{}".format(base_dir, os), "role_distribution")
+    file_distibution   = read_ansible_yaml("{}/vars/{}".format(base_dir, os), "role_distibution")
     file_molecule      = read_ansible_yaml("{}/group_vars/all/vars".format(molecule_dir), "test_vars")
     # file_host_molecule = read_ansible_yaml("{}/host_vars/{}/vars".format(base_dir, HOST), "host_vars")
 
     defaults_vars      = host.ansible("include_vars", file_defaults).get("ansible_facts").get("role_defaults")
     vars_vars          = host.ansible("include_vars", file_vars).get("ansible_facts").get("role_vars")
-    distribution_vars  = host.ansible("include_vars", file_distribution).get("ansible_facts").get("role_distribution")
+    distibution_vars   = host.ansible("include_vars", file_distibution).get("ansible_facts").get("role_distibution")
     molecule_vars      = host.ansible("include_vars", file_molecule).get("ansible_facts").get("test_vars")
     # host_vars          = host.ansible("include_vars", file_host_molecule).get("ansible_facts").get("host_vars")
 
     ansible_vars = defaults_vars
     ansible_vars.update(vars_vars)
-    ansible_vars.update(distribution_vars)
+    ansible_vars.update(distibution_vars)
     ansible_vars.update(molecule_vars)
     # ansible_vars.update(host_vars)
 
@@ -98,48 +98,8 @@ def get_vars(host):
     return result
 
 
-def local_facts(host):
-    """
-      return local facts
-    """
-    return host.ansible("setup").get("ansible_facts").get("ansible_local").get("promtail")
-
-
-def test_package(host, get_vars):
-    """
-    """
-    version = local_facts(host).get("version")
-
-    install_dir = get_vars.get("promtail_install_path")
-    defaults_dir = get_vars.get("promtail_defaults_directory")
-    config_dir = get_vars.get("promtail_config_dir")
-
-    if 'latest' in install_dir:
-        install_dir = install_dir.replace('latest', version)
-
-    files = []
-    files.append("/usr/bin/promtail")
-
-    if install_dir:
-        files.append("{}/promtail".format(install_dir))
-    if defaults_dir:
-        files.append("{}/promtail".format(defaults_dir))
-    if config_dir:
-        files.append("{}/promtail.yml".format(config_dir))
-
-    print(files)
-
-    packages = get_vars.get("promtail_packages")
-    install_path = get_vars.get("promtail_install_path")
-
-    for pack in packages:
-        f = host.file("{}/{}".format(install_path, pack))
-        assert f.exists
-        assert f.is_file
-
-
 @pytest.mark.parametrize("dirs", [
-    "/etc/promtail",
+    "/etc/loki",
 ])
 def test_directories(host, dirs):
     d = host.file(dirs)
@@ -148,7 +108,7 @@ def test_directories(host, dirs):
 
 
 @pytest.mark.parametrize("files", [
-    "/etc/promtail/promtail.yml"
+    "/etc/loki/loki.yml"
 ])
 def test_files(host, files):
     f = host.file(files)
@@ -157,30 +117,12 @@ def test_files(host, files):
 
 
 def test_user(host):
-    assert host.group("promtail").exists
-    assert host.user("promtail").exists
-    assert "promtail" in host.user("promtail").groups
-    assert host.user("promtail").home == "/nonexistent"
+    assert host.group("loki").exists
+    assert host.user("loki").exists
+    assert "loki" in host.user("loki").groups
+    assert host.user("loki").home == "/nonexistent"
 
 
 def test_service(host, get_vars):
-    service = host.service("promtail")
-    assert service.is_enabled
+    service = host.service("loki")
     assert service.is_running
-
-
-def test_open_port(host, get_vars):
-    for i in host.socket.get_listening_sockets():
-        print(i)
-
-    pp_json(get_vars)
-
-    server = get_vars.get("promtail_server")
-
-    print(server)
-
-    address = server.get("http_listen_address")
-    port = server.get("http_listen_port")
-
-    service = host.socket("tcp://{0}:{1}".format(address, port))
-    assert service.is_listening

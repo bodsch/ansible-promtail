@@ -1,11 +1,23 @@
 ---
 
+- block:
+    - name: get checksum list
+      set_fact:
+        __promtail_checksums: "{{ lookup('url', 'https://github.com/grafana/loki/releases/download/v' + promtail_version + '/SHA256SUMS', wantlist=True) | list }}"
+      run_once: true
+
+    - name: get checksum for {{ go_arch }} architecture
+      set_fact:
+        __promtail_checksum: "{{ __promtail_checksums | promtail_checksum('promtail', 'linux', go_arch) }}"
+  delegate_to: localhost
+
 - name: download promtail binary archive
   become: false
   delegate_to: "{{ promtail_delegate_to }}"
   get_url:
     url: "{{ promtail_release_download_url }}/download/v{{ promtail_version }}/promtail-linux-amd64.zip"
     dest: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64.zip"
+    checksum: "sha256:{{ __promtail_checksum }}"
   register: _download_archive
   until: _download_archive is succeeded
   retries: 5
@@ -51,14 +63,5 @@
         group: "{{ promtail_system_group }}"
   when:
     - stat_file_binary.stat.exists
-
-- name: create link to binary
-  file:
-    src: "{{ promtail_install_path }}/promtail"
-    dest: /usr/bin/promtail
-    state: link
-    force: true
-  notify:
-    - restart promtail
 
 ...

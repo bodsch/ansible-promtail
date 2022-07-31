@@ -21,6 +21,7 @@ promtail_defaults_server:
   http_listen_port: 9080
   grpc_listen_address: "127.0.0.1"
   grpc_listen_port: 0
+  # [debug, info, warn, error] (default info)
   log_level: info
 
 promtail_defaults_clients: []
@@ -31,6 +32,15 @@ promtail_defaults_positions:
 
 promtail_defaults_targets:
   sync_period: "10s"
+
+
+go_arch_map:
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armv7'
+  armv6l: 'armv6'
+
+go_arch: "{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}"
 
 systemd_lib_directory: /lib/systemd/system
 

@@ -105,7 +105,7 @@ def local_facts(host):
     return host.ansible("setup").get("ansible_facts").get("ansible_local").get("promtail")
 
 
-def test_package(host, get_vars):
+def test_files(host, get_vars):
     """
     """
     version = local_facts(host).get("version")
@@ -129,12 +129,8 @@ def test_package(host, get_vars):
 
     print(files)
 
-    packages = get_vars.get("promtail_packages")
-    install_path = get_vars.get("promtail_install_path")
-
-    for pack in packages:
-        f = host.file("{}/{}".format(install_path, pack))
-        assert f.exists
+    for _file in files:
+        f = host.file(_file)
         assert f.is_file
 
 
@@ -144,16 +140,6 @@ def test_package(host, get_vars):
 def test_directories(host, dirs):
     d = host.file(dirs)
     assert d.is_directory
-    assert d.exists
-
-
-@pytest.mark.parametrize("files", [
-    "/etc/promtail/promtail.yml"
-])
-def test_files(host, files):
-    f = host.file(files)
-    assert f.exists
-    assert f.is_file
 
 
 def test_user(host):
