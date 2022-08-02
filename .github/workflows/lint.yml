@@ -12,7 +12,7 @@ on:
 
 defaults:
   run:
-    working-directory: 'ansible-loki'
+    working-directory: 'ansible-promtail'
 
 jobs:
   lint:
