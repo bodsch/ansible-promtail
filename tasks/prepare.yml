@@ -159,4 +159,11 @@
     promtail_positions: "{{ promtail_defaults_positions | combine( promtail_positions, recursive=True ) }}"
     promtail_targets: "{{ promtail_defaults_targets | combine( promtail_targets, recursive=True ) }}"
 
+
+- name: fail when client are missing
+  fail:
+    msg: "least one client config should be provided"
+  when:
+    - promtail_clients | default([]) | count == 0
+
 ...
