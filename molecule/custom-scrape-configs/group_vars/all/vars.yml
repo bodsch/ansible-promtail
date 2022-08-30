@@ -70,7 +70,8 @@ promtail_scrape_configs:
 
     pipeline_stages:
       - regex:
-          expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2}\ \d{2}:\d{2}:\d{2})\ \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\]\ (?P<process_id>\d+)\#(?P<thread_id>\d+):\ \*(?P<connection_id>\d+)\ (?P<error>.+?)(?:\ while\ (?P<context>.+?))?,\ client:\ (?P<client_ip>\d+\.\d+\.\d+\.\d+),\ server:\ (?P<server>.+?)(?:,\ request:\ \"(?P<request_method>[A-Z]+?)\ (?P<request_path>\/.+?)\ (?P<request_protocol>.+?)\")?(?:,\ upstream:\ \"(?P<upstream>.+?)\")?(?:,\ host:\ \"(?P<host>.+?)\")?(?:,\ referrer:\ \"(?P<referrer>.+?)\")?$'
+          # expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2}\ \d{2}:\d{2}:\d{2})\ \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\]\ (?P<process_id>\d+)\#(?P<thread_id>\d+):\ \*(?P<connection_id>\d+)\ (?P<error>.+?)(?:\ while\ (?P<context>.+?))?,\ client:\ (?P<client_ip>\d+\.\d+\.\d+\.\d+),\ server:\ (?P<server>.+?)(?:,\ request:\ \"(?P<request_method>[A-Z]+?)\ (?P<request_path>\/.+?)\ (?P<request_protocol>.+?)\")?(?:,\ upstream:\ \"(?P<upstream>.+?)\")?(?:,\ host:\ \"(?P<host>.+?)\")?(?:,\ referrer:\ \"(?P<referrer>.+?)\")?$'
+          expression: '(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\] (?P<process_id>\d+)#(?P<thread_id>\d+): \*(?P<connection_id>\d+) (?P<error>.+?) while (?P<context>.+?), client: (?P<client_ip>\d+\.\d+\.\d+\.\d+), server: (?P<server>.+?), request: \"(?P<request_method>[A-Za-z]+?) (?P<request_path>\/.+?) (?P<request_protocol>.+?)\"?, upstream: \"(?P<upstream>.+?)\"?, host: \"(?P<host>.+?)\"?(?:, referrer: \"(?P<referrer>.+?)\")?$'
       - labels:
           timestamp:
           severity:
