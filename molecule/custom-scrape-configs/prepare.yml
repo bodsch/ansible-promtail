@@ -16,3 +16,4 @@
 
   roles:
     - role: loki
+    - role: nginx
