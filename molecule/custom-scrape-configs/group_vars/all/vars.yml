@@ -5,19 +5,23 @@ promtail_version: "2.6.1"
 promtail_server:
   http_listen_address: "127.0.0.1"
   http_listen_port: 9080
-  log_level: info
+  log_level: debug
+
+promtail_additional_groups:
+  - www-data
+  - adm
 
 promtail_clients:
   - url: "http://127.0.0.1:3100/loki/api/v1/push"
 
 promtail_scrape_configs:
   # file_sd
-  - job_name: file_sd
-    file_sd_configs:
-      - files:
-          - "{{ promtail_config_dir }}/file_sd/*.yml"
-          - "{{ promtail_config_dir }}/file_sd/*.yaml"
-          - "{{ promtail_config_dir }}/file_sd/*.json"
+  # - job_name: file_sd
+  #   file_sd_configs:
+  #     - files:
+  #         - "{{ promtail_config_dir }}/file_sd/*.yml"
+  #         - "{{ promtail_config_dir }}/file_sd/*.yaml"
+  #         - "{{ promtail_config_dir }}/file_sd/*.json"
   # example static config
   # - job_name: system
   #   static_configs:
@@ -30,32 +34,33 @@ promtail_scrape_configs:
   #         __path__: /var/log/*.log
   #
   # example journald config
-  - job_name: journal
-    journal:
-      max_age: 2h
-      labels:
-        job: systemd-journal
-    relabel_configs:
-      - source_labels:
-          - __journal__systemd_unit
-        target_label: 'unit'
+  # - job_name: journal
+  #   journal:
+  #     max_age: 2h
+  #     labels:
+  #       job: systemd-journal
+  #   relabel_configs:
+  #     - source_labels:
+  #         - __journal__systemd_unit
+  #       target_label: 'unit'
 
-  - job_name: nginx_access
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: nginx
-          host: "{{ ansible_fqdn }}"
-          log_level: access
-          agent: promtail
-          __path__: /var/log/nginx/**access.log
-
-    pipeline_stages:
-      # anonymisier latest octet
-      - replace:
-          expression: '(?:[0-9]{1,3}\.){3}([0-9]{1,3})'
-          replace: '***'
+  # - job_name: nginx_access
+  #   static_configs:
+  #     - targets:
+  #         - localhost
+  #       labels:
+  #         job: nginx
+  #         host: "{{ ansible_fqdn }}"
+  #         log_level: nginx_access
+  #         agent: promtail
+  #         env: molecule
+  #         __path__: /var/log/nginx/**access.log
+  #
+  #   pipeline_stages:
+  #     # anonymisier latest octet
+  #     - replace:
+  #         expression: '(?:[0-9]{1,3}\.){3}([0-9]{1,3})'
+  #         replace: '***'
 
   - job_name: nginx_error
     static_configs:
@@ -64,14 +69,25 @@ promtail_scrape_configs:
         labels:
           job: nginx
           host: "{{ ansible_fqdn }}"
+          log_level: nginx_error
           agent: promtail
-          env: development
-          path: /var/log/nginx/*/*error.log
+          env: molecule
+          # to use multiples paths try this
+          #
+          # __path__: /var/log/**/{loki,promtail,grafana}.log
+          # __path__: /var/log/nginx/**/error.log
+          __path__: /var/log/nginx/**/error.log
 
+
+    # REGEX examples
+    # row   :  2022/09/01 06:57:47 [error] 6143#6143: *1 open() "/var/www/monitoring.molecule.lan/bin/bashdfdslfnkjdsafifdsa" failed (2: No such file or directory), client: 127.0.0.1, server: monitoring.molecule.lan, request: "GET /bin/bashdfdslfnkjdsafifdsa HTTP/1.1", host: "monitoring.molecule.lan"
+    # row   :  2022/09/01 07:02:31 [error] 6143#6143: *4 directory index of "/var/www/monitoring.molecule.lan/" is forbidden, client: 127.0.0.1, server: monitoring.molecule.lan, request: "GET / HTTP/1.1", host: "monitoring.molecule.lan"
+    # regex : '(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\] (?P<process_id>\d+)#(?P<thread_id>\d+): \*(?P<connection_id>\d+) (?P<error_message>.+?), client: (?P<client_ip>\d+\.\d+\.\d+\.\d+), server: (?P<server>.+?), request: \"(?P<request_method>GET|POST|HEAD|OPTION]?) (?P<request_path>.+?) (?P<request_protocol>.+?)\", host: \"(?P<host>.+?)\"'
+    # row   :  2022/05/01 06:28:32 [notice] 7194#7194: *233269 "/favicon.ico" does not match "/en", client: 64.252.76.120, server: monitoring.molecule.lan, request: "GET /en HTTP/1.1", host: "monitoring.molecule.lan", referrer: "https://monitoring.molecule.lan"
+    # regex : '(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\] (?P<process_id>\d+)#(?P<thread_id>\d+): \*(?P<connection_id>\d+) (?P<error_message>.+?), client: (?P<client_ip>\d+\.\d+\.\d+\.\d+), server: (?P<server>.+?), request: \"(?P<request_method>GET|POST|HEAD|OPTION]?) (?P<request_path>.+?) (?P<request_protocol>.+?)\", host: \"(?P<host>.+?)\"(, referrer: \"(?P<referer>.+?)\")?'
     pipeline_stages:
       - regex:
-          # expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2}\ \d{2}:\d{2}:\d{2})\ \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\]\ (?P<process_id>\d+)\#(?P<thread_id>\d+):\ \*(?P<connection_id>\d+)\ (?P<error>.+?)(?:\ while\ (?P<context>.+?))?,\ client:\ (?P<client_ip>\d+\.\d+\.\d+\.\d+),\ server:\ (?P<server>.+?)(?:,\ request:\ \"(?P<request_method>[A-Z]+?)\ (?P<request_path>\/.+?)\ (?P<request_protocol>.+?)\")?(?:,\ upstream:\ \"(?P<upstream>.+?)\")?(?:,\ host:\ \"(?P<host>.+?)\")?(?:,\ referrer:\ \"(?P<referrer>.+?)\")?$'
-          expression: '(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\] (?P<process_id>\d+)#(?P<thread_id>\d+): \*(?P<connection_id>\d+) (?P<error>.+?) while (?P<context>.+?), client: (?P<client_ip>\d+\.\d+\.\d+\.\d+), server: (?P<server>.+?), request: \"(?P<request_method>[A-Za-z]+?) (?P<request_path>\/.+?) (?P<request_protocol>.+?)\"?, upstream: \"(?P<upstream>.+?)\"?, host: \"(?P<host>.+?)\"?(?:, referrer: \"(?P<referrer>.+?)\")?$'
+          expression: '(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\] (?P<process_id>\d+)#(?P<thread_id>\d+): \*(?P<connection_id>\d+) (?P<error_message>.+?), client: (?P<client_ip>\d+\.\d+\.\d+\.\d+), server: (?P<server>.+?), request: \"(?P<request_method>GET|POST|HEAD|OPTION]?) (?P<request_path>.+?) (?P<request_protocol>.+?)\", host: \"(?P<host>.+?)\"(, referrer: \"(?P<referer>.+?)\")?'
       - labels:
           timestamp:
           severity:
@@ -85,7 +101,6 @@ promtail_scrape_configs:
           request_method:
           request_path:
           request_protocol:
-          upstream:
           host:
           referrer:
 
