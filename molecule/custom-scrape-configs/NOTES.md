@@ -19,3 +19,8 @@ level=debug ts=2022-08-30T15:09:13.415542207Z caller=regex.go:121 component=pipe
 level=info ts=2022-08-30T15:09:13.415675936Z caller=main.go:121 msg="Starting Promtail" version="(version=2.6.1, branch=HEAD, revision=6bd05c9a4)"
 
 ```
+
+
+journalctl -u promtail -f -n 100
+
+logcli query --tail '{agent="promtail",severity="error"}'
