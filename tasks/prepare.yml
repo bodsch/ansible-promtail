@@ -55,6 +55,9 @@
     - name: set promtail version to {{ _latest_release.json.tag_name[1:] }}
       set_fact:
         promtail_version: "{{ _latest_release.json.tag_name[1:] }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
   when:
     - promtail_version == "latest"
 
@@ -166,7 +169,6 @@
     promtail_clients: "{{ promtail_defaults_clients | union( promtail_clients) }}"
     promtail_positions: "{{ promtail_defaults_positions | combine( promtail_positions, recursive=True ) }}"
     promtail_targets: "{{ promtail_defaults_targets | combine( promtail_targets, recursive=True ) }}"
-
 
 - name: fail when client are missing
   fail:

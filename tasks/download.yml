@@ -9,11 +9,14 @@
     - name: get checksum for {{ go_arch }} architecture
       set_fact:
         __promtail_checksum: "{{ __promtail_checksums | promtail_checksum('promtail', 'linux', go_arch) }}"
+  become: false
   delegate_to: localhost
+  run_once: true
 
 - name: download promtail binary archive
   become: false
   delegate_to: "{{ promtail_delegate_to }}"
+  run_once: "{{ 'false' if promtail_direct_download else 'true' }}"
   get_url:
     url: "{{ promtail_release_download_url }}/download/v{{ promtail_version }}/promtail-linux-amd64.zip"
     dest: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64.zip"
@@ -27,6 +30,7 @@
 - name: extract promtail archive
   become: false
   delegate_to: "{{ promtail_delegate_to }}"
+  run_once: "{{ 'false' if promtail_direct_download else 'true' }}"
   unarchive:
     src: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64.zip"
     dest: "{{ promtail_local_tmp_directory }}/"
@@ -35,6 +39,7 @@
 - name: detect binary file for promtail
   become: false
   delegate_to: "{{ promtail_delegate_to }}"
+  run_once: "{{ 'false' if promtail_direct_download else 'true' }}"
   stat:
     path: "{{ promtail_local_tmp_directory }}/promtail-linux-amd64"
   register: stat_file_binary
