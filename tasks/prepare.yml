@@ -1,7 +1,7 @@
 ---
 
 - name: include OS specific configuration ({{ ansible_distribution }} ({{ ansible_os_family }}) {{ ansible_distribution_major_version }})
-  include_vars: "{{ lookup('first_found', params) }}"
+  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
     params:
       paths:
@@ -19,11 +19,11 @@
       skip: true
 
 - name: update package cache
-  package:
+  ansible.builtin.package:
     update_cache: true
 
 - name: define delegate instance for download handling
-  set_fact:
+  ansible.builtin.set_fact:
     promtail_delegate_to: "{{ ansible_host }}"
     promtail_local_tmp_directory: "{{
         lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
@@ -32,13 +32,19 @@
     - promtail_direct_download
 
 - name: install dependency
-  package:
+  ansible.builtin.package:
     name: "{{ promtail_requirements }}"
     state: present
 
-- block:
+- name: get latest release
+  delegate_to: localhost
+  become: false
+  run_once: true
+  when:
+    - promtail_version == "latest"
+  block:
     - name: get latest release
-      uri:
+      ansible.builtin.uri:
         url: "https://api.github.com/repos/grafana/loki/releases/latest"
         method: GET
         return_content: true
@@ -52,71 +58,70 @@
       until: _latest_release.status == 200
       retries: 5
 
-    - name: set promtail version to {{ _latest_release.json.tag_name[1:] }}
-      set_fact:
+    - name: set promtail version
+      ansible.builtin.set_fact:
         promtail_version: "{{ _latest_release.json.tag_name[1:] }}"
-  delegate_to: localhost
-  become: false
-  run_once: true
-  when:
-    - promtail_version == "latest"
 
-- name: detect our installation path '{{ promtail_install_path | dirname }}'
-  stat:
+- name: detect our installation path
+  ansible.builtin.stat:
     path: "{{ promtail_install_path | dirname }}"
     get_checksum: false
   register: stat_promtail_path
   ignore_errors: true
 
 - name: old installation
-  block:
-    - name: stop old service
-      service:
-        name: promtail
-        state: stopped
-        enabled: false
-
-    - name: remove installed systemd unit
-      file:
-        state: absent
-        path: /etc/systemd/system/promtail.service
-
-    - name: remove installed promtail
-      file:
-        state: absent
-        path: "{{ stat_promtail_path.stat.path }}"
   when:
     - stat_promtail_path is defined
     - stat_promtail_path.stat is defined
     - stat_promtail_path.stat.isdir is defined
     - not stat_promtail_path.stat.isdir
+  block:
+    - name: stop old service
+      ansible.builtin.service:
+        name: promtail
+        state: stopped
+        enabled: false
+
+    - name: remove installed systemd unit
+      ansible.builtin.file:
+        state: absent
+        path: /etc/systemd/system/promtail.service
+
+    - name: remove installed promtail
+      ansible.builtin.file:
+        state: absent
+        path: "{{ stat_promtail_path.stat.path }}"
 
 - name: flush handlers
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: detect installed promtail binary
-  stat:
+  ansible.builtin.stat:
     path: "{{ promtail_install_path }}/promtail"
   register: stat_promtail_binary
 
 - name: create download directory
   become: false
   delegate_to: "{{ promtail_delegate_to }}"
-  file:
+  ansible.builtin.file:
     path: "{{ promtail_local_tmp_directory }}"
     state: directory
     mode: 0750
 
 - name: user and group handling
+  when:
+    - promtail_system_user != "root" or promtail_system_group != "root"
   block:
     - name: create promtail group
-      group:
+      ansible.builtin.group:
         name: "{{ promtail_system_group }}"
         state: present
         system: true
+      when:
+        - promtail_system_group != "root"
 
     - name: create promtail user
-      user:
+      ansible.builtin.user:
         name: "{{ promtail_system_user }}"
         groups: "{{ promtail_system_group }}"
         append: true
@@ -124,9 +129,11 @@
         system: true
         createhome: false
         home: /nonexistent
+      when:
+        - promtail_system_user != "root"
 
     - name: add user {{ promtail_system_user }} to additional groups
-      user:
+      ansible.builtin.user:
         name: "{{ promtail_system_user }}"
         groups: "{{ item }}"
         append: true
@@ -135,11 +142,8 @@
       loop_control:
         label: "add {{ promtail_system_user }} to group {{ item }}"
 
-  when:
-    - promtail_system_user != "root"
-
 - name: create install directory
-  file:
+  ansible.builtin.file:
     path: "{{ promtail_install_path }}"
     state: directory
     owner: "{{ promtail_system_user }}"
@@ -147,7 +151,7 @@
     mode: 0755
 
 - name: fix directory rights for {{ promtail_install_path | dirname }}
-  file:
+  ansible.builtin.file:
     path: "{{ promtail_install_path | dirname }}"
     state: directory
     owner: "{{ promtail_system_user }}"
@@ -156,7 +160,7 @@
     recurse: true
 
 - name: create ansible local facts directory
-  file:
+  ansible.builtin.file:
     dest: /etc/ansible/facts.d
     state: directory
     owner: root
@@ -164,14 +168,14 @@
     mode: 0775
 
 - name: merge promtail configuration between defaults and custom
-  set_fact:
-    promtail_server: "{{ promtail_defaults_server | combine( promtail_server, recursive=True ) }}"
-    promtail_clients: "{{ promtail_defaults_clients | union( promtail_clients) }}"
-    promtail_positions: "{{ promtail_defaults_positions | combine( promtail_positions, recursive=True ) }}"
-    promtail_targets: "{{ promtail_defaults_targets | combine( promtail_targets, recursive=True ) }}"
+  ansible.builtin.set_fact:
+    promtail_server: "{{ promtail_defaults_server | combine(promtail_server, recursive=True) }}"
+    promtail_clients: "{{ promtail_defaults_clients | union(promtail_clients) }}"
+    promtail_positions: "{{ promtail_defaults_positions | combine(promtail_positions, recursive=True) }}"
+    promtail_targets: "{{ promtail_defaults_targets | combine(promtail_targets, recursive=True) }}"
 
 - name: fail when client are missing
-  fail:
+  ansible.builtin.fail:
     msg: "least one client config should be provided"
   when:
     - promtail_clients | default([]) | count == 0

@@ -1,25 +1,21 @@
 ---
-name: lint
+
+name: code linter
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
-      - master
       - main
-  schedule:
-    - cron: "0 2 * * 0"
-
-defaults:
-  run:
-    working-directory: 'ansible-promtail'
+      - testing
 
 jobs:
   lint:
     name: linting
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: 🛎 Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -27,9 +23,11 @@ jobs:
       - name: lint
         uses: docker://ghcr.io/github/super-linter:slim-v4
         env:
-          # DEFAULT_BRANCH: master
+          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GH_REGISTRY_TOKEN }}
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_ANSIBLE: true
           # VALIDATE_MARKDOWN: true
           VALIDATE_YAML: true
+
+...

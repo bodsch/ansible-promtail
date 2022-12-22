@@ -1,11 +1,11 @@
 ---
 
 - name: restart promtail if needed
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: ensure promtail is enabled on boot
   become: true
-  service:
+  ansible.builtin.service:
     name: promtail
     enabled: true
     state: started

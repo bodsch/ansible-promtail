@@ -2,20 +2,22 @@
 
 - name: restart promtail
   become: true
-  service:
+  ansible.builtin.service:
     name: promtail
     state: restarted
 
 - name: reload promtail
   become: true
-  service:
+  ansible.builtin.service:
     name: promtail
     state: reloaded
 
 - name: daemon-reload
   become: true
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: true
     force: true
+  when:
+    - ansible_service_mgr | lower == "systemd"
 
 ...

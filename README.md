@@ -4,14 +4,15 @@
 Ansible role to setup [promtail](https://grafana.com/docs/loki/latest/clients/promtail/).
 
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-promtail/CI)][ci]
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/bodsch/ansible-promtail/main.yml?branch=main)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-promtail)][issues]
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-promtail)][releases]
+[![Ansible Quality Score](https://img.shields.io/ansible/quality/50067?label=role%20quality)][quality]
 
 [ci]: https://github.com/bodsch/ansible-promtail/actions
 [issues]: https://github.com/bodsch/ansible-promtail/issues?q=is%3Aopen+is%3Aissue
 [releases]: https://github.com/bodsch/ansible-promtail/releases
-
+[quality]: https://galaxy.ansible.com/bodsch/promtail
 
 ## Requirements & Dependencies
 

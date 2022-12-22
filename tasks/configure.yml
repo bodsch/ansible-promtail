@@ -1,7 +1,7 @@
 ---
 
 - name: create promtail configuration directories
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     owner: root
@@ -12,7 +12,7 @@
     - "{{ promtail_config_dir }}/file_sd"
 
 - name: create promtail configuration
-  template:
+  ansible.builtin.template:
     src: "promtail/promtail.yml.j2"
     dest: "{{ promtail_config_dir }}/promtail.yml"
     force: true

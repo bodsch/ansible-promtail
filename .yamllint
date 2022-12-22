@@ -1,31 +1,39 @@
 ---
-
+# Based on ansible-lint config
 extends: default
+
 rules:
-  document-start:
-    present: true
+  braces:
+    max-spaces-inside: 1
+    level: error
+  brackets:
+    max-spaces-inside: 1
+    level: error
+  colons:
+    max-spaces-after: -1
+    level: error
+  commas:
+    max-spaces-after: -1
+    level: error
+  comments: disable
+  comments-indentation: disable
+  document-start: disable
+  empty-lines:
+    max: 3
+    level: error
+  hyphens:
+    level: error
+  indentation:
+    spaces: 2
+  key-duplicates: enable
   line-length:
     max: 195
     level: warning
-  empty-lines:
-    level: warning
-    max: 2
-    max-start: 0
-    max-end: 0
-  empty-values:
-    forbid-in-block-mappings: true
-    forbid-in-flow-mappings: true
-
-#   braces:
-#     min-spaces-inside: 0
-#     max-spaces-inside: 1
-#   brackets:
-#     min-spaces-inside: 0
-#     max-spaces-inside: 1
-#   indentation:
-#     spaces: 2
-#   comments: disable
-#   comments-indentation: disable
+  new-line-at-end-of-file: disable
+  new-lines:
+    type: unix
+  trailing-spaces: disable
+  truthy: disable
 
 ignore: |
   molecule/
