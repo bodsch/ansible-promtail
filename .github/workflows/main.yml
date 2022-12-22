@@ -22,17 +22,15 @@ defaults:
 jobs:
 
   arch:
-    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}, scenario ${{ matrix.scenario }}"
-    needs:
-      - lint
-    runs-on: ubuntu-latest
+    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}"
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
         image:
           - archlinux:latest
         ansible-version:
-          - '4.10'
           - '5.1'
           - '6.1'
         scenario:
@@ -43,6 +41,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: 'ansible-promtail'
+
+      - name: 🐍 set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: install dependencies
         run: |
@@ -59,10 +62,9 @@ jobs:
           DISTRIBUTION: ${{ matrix.image }}
 
   deb:
-    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}, scenario ${{ matrix.scenario }}"
-    needs:
-      - lint
-    runs-on: ubuntu-latest
+    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}"
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
@@ -71,7 +73,6 @@ jobs:
           - debian:11
           - ubuntu:20.04
         ansible-version:
-          - '4.10'
           - '5.1'
           - '6.1'
         scenario:
@@ -81,6 +82,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: 'ansible-promtail'
+
+      - name: 🐍 set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: install dependencies
         run: |
@@ -97,10 +103,9 @@ jobs:
           DISTRIBUTION: ${{ matrix.image }}
 
   rpm:
-    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}, scenario ${{ matrix.scenario }}"
-    needs:
-      - lint
-    runs-on: ubuntu-latest
+    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}"
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
@@ -109,7 +114,6 @@ jobs:
           - rockylinux:8
           - almalinux:8
         ansible-version:
-          - '4.10'
           - '5.1'
         scenario:
           - default
@@ -118,6 +122,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: 'ansible-promtail'
+
+      - name: 🐍 set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: install dependencies
         run: |
