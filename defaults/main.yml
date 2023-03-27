@@ -1,6 +1,6 @@
 ---
 
-promtail_version: "2.6.1"
+promtail_version: "2.7.2"
 promtail_release_download_url: https://github.com/grafana/loki/releases
 
 promtail_system_user: promtail
@@ -13,14 +13,24 @@ promtail_additional_groups:
 
 promtail_direct_download: false
 
+promtail_runtime: {}
+
+promtail_systemd:
+  restart: false
+  max_runtime: 7d
+
 promtail_server: {}
 
 promtail_clients: []
 
 promtail_positions: {}
 
-promtail_scrape_configs: []
-
 promtail_targets: {}
+
+promtail_limits: {}
+
+promtail_tracing: {}
+
+promtail_scrape_configs: []
 
 ...

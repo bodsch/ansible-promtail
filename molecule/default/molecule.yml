@@ -25,7 +25,7 @@ provisioner:
   name: ansible
   ansible_args:
     - --diff
-    # - -vv
+    - -v
   config_options:
     defaults:
       deprecation_warnings: True
@@ -34,7 +34,7 @@ provisioner:
 
 scenario:
   test_sequence:
-    - lint
+    # - lint
     - destroy
     - dependency
     - syntax

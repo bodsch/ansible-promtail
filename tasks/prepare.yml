@@ -169,10 +169,14 @@
 
 - name: merge promtail configuration between defaults and custom
   ansible.builtin.set_fact:
+    promtail_runtime: "{{ promtail_defaults_runtime | combine(promtail_runtime, recursive=True) }}"
+    promtail_systemd: "{{ promtail_defaults_systemd | combine(promtail_systemd, recursive=True) }}"
     promtail_server: "{{ promtail_defaults_server | combine(promtail_server, recursive=True) }}"
     promtail_clients: "{{ promtail_defaults_clients | union(promtail_clients) }}"
     promtail_positions: "{{ promtail_defaults_positions | combine(promtail_positions, recursive=True) }}"
     promtail_targets: "{{ promtail_defaults_targets | combine(promtail_targets, recursive=True) }}"
+    promtail_limits: "{{ promtail_defaults_limits | combine(promtail_limits, recursive=True) }}"
+    promtail_tracing: "{{ promtail_defaults_tracing | combine(promtail_tracing, recursive=True) }}"
 
 - name: fail when client are missing
   ansible.builtin.fail:

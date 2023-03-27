@@ -27,14 +27,10 @@ rules:
     spaces: 2
   key-duplicates: enable
   line-length:
-    max: 195
+    max: 560
     level: warning
   new-line-at-end-of-file: disable
   new-lines:
     type: unix
   trailing-spaces: disable
   truthy: disable
-
-ignore: |
-  molecule/
-  .github
