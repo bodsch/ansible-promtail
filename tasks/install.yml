@@ -32,12 +32,6 @@
     owner: "{{ promtail_system_user }}"
     group: "{{ promtail_system_group }}"
 
-- name: create local facts
-  ansible.builtin.template:
-    src: ansible_facts.j2
-    dest: /etc/ansible/facts.d/promtail.fact
-    mode: 0755
-
 - name: create link to binary
   ansible.builtin.file:
     src: "{{ promtail_install_path }}/promtail"
@@ -66,8 +60,24 @@
     mode: 0644
   notify:
     - daemon-reload
-    - restart promtail
   when:
     - ansible_service_mgr | lower == "systemd"
+
+- name: create service configuration
+  ansible.builtin.template:
+    src: "promtail.j2"
+    dest: "{{ promtail_defaults_directory }}/promtail"
+    force: true
+    owner: root
+    group: "{{ promtail_system_group }}"
+    mode: 0640
+  notify:
+    - restart promtail
+
+- name: create local facts
+  ansible.builtin.template:
+    src: ansible_facts.j2
+    dest: /etc/ansible/facts.d/promtail.fact
+    mode: 0755
 
 ...

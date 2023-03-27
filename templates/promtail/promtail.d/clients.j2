@@ -1,3 +1,6 @@
-
+{% if promtail_clients is defined and
+      promtail_clients | length > 0 %}
+  {% set _data = promtail_clients %}
 clients:
-  {{ promtail_clients | to_nice_yaml(indent=2) | indent(2, False) }}
+  {{ _data | to_nice_yaml(indent=2, sort_keys=False) | indent(2, False) }}
+{% endif %}

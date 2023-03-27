@@ -17,6 +17,8 @@
   ansible.builtin.systemd:
     daemon_reload: true
     force: true
+  notify:
+    - restart promtail
   when:
     - ansible_service_mgr | lower == "systemd"
 

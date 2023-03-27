@@ -25,31 +25,32 @@ def pp_json(json_thing, sort=True, indents=2):
 
 
 def base_directory():
-    """ ... """
+    """
+    """
     cwd = os.getcwd()
 
-    if ('group_vars' in os.listdir(cwd)):
+    if 'group_vars' in os.listdir(cwd):
         directory = "../.."
         molecule_directory = "."
     else:
         directory = "."
-        molecule_directory = "molecule/{}".format(os.environ.get('MOLECULE_SCENARIO_NAME'))
+        molecule_directory = f"molecule/{os.environ.get('MOLECULE_SCENARIO_NAME')}"
 
     return directory, molecule_directory
 
 
 def read_ansible_yaml(file_name, role_name):
-    ext_arr = ["yml", "yaml"]
-
+    """
+    """
     read_file = None
 
-    for e in ext_arr:
-        test_file = "{}.{}".format(file_name, e)
+    for e in ["yml", "yaml"]:
+        test_file = f"{file_name}.{e}"
         if os.path.isfile(test_file):
             read_file = test_file
             break
 
-    return "file={} name={}".format(read_file, role_name)
+    return f"file={read_file} name={role_name}"
 
 
 @pytest.fixture()
@@ -63,32 +64,30 @@ def get_vars(host):
     """
     base_dir, molecule_dir = base_directory()
     distribution = host.system_info.distribution
+    operation_system = None
 
     if distribution in ['debian', 'ubuntu']:
-        os = "debian"
+        operation_system = "debian"
     elif distribution in ['redhat', 'ol', 'centos', 'rocky', 'almalinux']:
-        os = "redhat"
-    elif distribution in ['arch']:
-        os = "archlinux"
+        operation_system = "redhat"
+    elif distribution in ['arch', 'artix']:
+        operation_system = f"{distribution}linux"
 
-    # print(" -> {} / {}".format(distribution, os))
-    # print(" -> {}".format(base_dir))
-
-    file_defaults      = read_ansible_yaml("{}/defaults/main".format(base_dir), "role_defaults")
-    file_vars          = read_ansible_yaml("{}/vars/main".format(base_dir), "role_vars")
-    file_distribution  = read_ansible_yaml("{}/vars/{}".format(base_dir, os), "role_distribution")
-    file_molecule      = read_ansible_yaml("{}/group_vars/all/vars".format(molecule_dir), "test_vars")
+    file_defaults      = read_ansible_yaml(f"{base_dir}/defaults/main", "role_defaults")
+    file_vars          = read_ansible_yaml(f"{base_dir}/vars/main", "role_vars")
+    role_distribution  = read_ansible_yaml(f"{base_dir}/vars/{operation_system}", "role_distribution")
+    file_molecule      = read_ansible_yaml(f"{molecule_dir}/group_vars/all/vars", "test_vars")
     # file_host_molecule = read_ansible_yaml("{}/host_vars/{}/vars".format(base_dir, HOST), "host_vars")
 
     defaults_vars      = host.ansible("include_vars", file_defaults).get("ansible_facts").get("role_defaults")
     vars_vars          = host.ansible("include_vars", file_vars).get("ansible_facts").get("role_vars")
-    distribution_vars  = host.ansible("include_vars", file_distribution).get("ansible_facts").get("role_distribution")
+    distibution_vars   = host.ansible("include_vars", role_distribution).get("ansible_facts").get("role_distribution")
     molecule_vars      = host.ansible("include_vars", file_molecule).get("ansible_facts").get("test_vars")
     # host_vars          = host.ansible("include_vars", file_host_molecule).get("ansible_facts").get("host_vars")
 
     ansible_vars = defaults_vars
     ansible_vars.update(vars_vars)
-    ansible_vars.update(distribution_vars)
+    ansible_vars.update(distibution_vars)
     ansible_vars.update(molecule_vars)
     # ansible_vars.update(host_vars)
 
@@ -121,11 +120,11 @@ def test_package(host, get_vars):
     files.append("/usr/bin/promtail")
 
     if install_dir:
-        files.append("{}/promtail".format(install_dir))
+        files.append(f"{install_dir}/promtail")
     if defaults_dir:
-        files.append("{}/promtail".format(defaults_dir))
+        files.append(f"{defaults_dir}/promtail")
     if config_dir:
-        files.append("{}/promtail.yml".format(config_dir))
+        files.append(f"{config_dir}/promtail.yml")
 
     print(files)
 
@@ -133,7 +132,7 @@ def test_package(host, get_vars):
     install_path = get_vars.get("promtail_install_path")
 
     for pack in packages:
-        f = host.file("{}/{}".format(install_path, pack))
+        f = host.file(f"{install_path}/{pack}")
         assert f.exists
         assert f.is_file
 
@@ -173,14 +172,23 @@ def test_open_port(host, get_vars):
     for i in host.socket.get_listening_sockets():
         print(i)
 
-    pp_json(get_vars)
+    # pp_json(get_vars)
 
     server = get_vars.get("promtail_server")
+    listen_address = None
 
     print(server)
 
-    address = server.get("http_listen_address")
-    port = server.get("http_listen_port")
+    if isinstance(server, dict):
+        listen = server.get("http", {}).get("listen", {})
 
-    service = host.socket("tcp://{0}:{1}".format(address, port))
+        listen_address = listen.get("address", "127.0.0.1")
+        listen_port = listen.get("port", 9080)
+
+        listen_address = f"{listen_address}:{listen_port}"
+
+    if not listen_address:
+        listen_address = "127.0.0.1:9080"
+
+    service = host.socket(f"tcp://{listen_address}")
     assert service.is_listening

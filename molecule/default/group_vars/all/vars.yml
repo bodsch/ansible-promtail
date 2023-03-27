@@ -1,14 +1,30 @@
 ---
 
-promtail_version: "2.6.1"
+promtail_version: "2.7.4"
+
+promtail_service:
+  log:
+    level: debug
 
 promtail_server:
-  http_listen_address: "127.0.0.1"
-  http_listen_port: 9080
-  log_level: info
+  http:
+    listen:
+      address: "127.0.0.1"
+      port: 9080
 
 promtail_clients:
   - url: "http://127.0.0.1:3100/loki/api/v1/push"
+    batchwait: 1s
+    batchsize: 1048576
+    follow_redirects: false
+    enable_http2: false
+    backoff_config:
+      min_period: 500ms
+      max_period: 5m0s
+      max_retries: 10
+    timeout: 10s
+    tenant_id: ""
+    stream_lag_labels: ""
 
 promtail_scrape_configs:
   # file_sd
@@ -19,16 +35,15 @@ promtail_scrape_configs:
           - "{{ promtail_config_dir }}/file_sd/*.yaml"
           - "{{ promtail_config_dir }}/file_sd/*.json"
   # example static config
-  # - job_name: system
-  #   static_configs:
-  #     - targets:
-  #         - localhost
-  #       labels:
-  #         job: varlogs
-  #         host: "{{ ansible_fqdn }}"
-  #         agent: promtail
-  #         __path__: /var/log/*.log
-  #
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          host: "{{ ansible_fqdn }}"
+          agent: promtail
+          __path__: /var/log/*.log
   # example journald config
   - job_name: journal
     journal:
@@ -39,87 +54,15 @@ promtail_scrape_configs:
       - source_labels:
           - __journal__systemd_unit
         target_label: 'unit'
-
   # example syslog config
-  # - job_name: syslog
-  #   syslog:
-  #     listen_address: 0.0.0.0:1514
-  #     labels:
-  #       job: "syslog"
-  #   relabel_configs:
-  #     - source_labels:
-  #         - __syslog_message_hostname
-  #       target_label: 'host'
-
-  # - job_name: nginx_access
-  #   static_configs:
-  #     - targets:
-  #         - localhost
-  #       labels:
-  #         job: nginx
-  #         host: "{{ ansible_fqdn }}"
-  #         log_level: access
-  #         agent: promtail
-  #         __path__: /var/log/nginx/**access.log
-  #
-  #   pipeline_stages:
-  #     # anonymisier latest octet
-  #     - replace:
-  #         expression: '(?:[0-9]{1,3}\.){3}([0-9]{1,3})'
-  #         replace: '***'
-
-  # - job_name: nginx_error
-  #   static_configs:
-  #     - targets:
-  #         - localhost
-  #       labels:
-  #         job: nginx
-  #         host: "{{ ansible_fqdn }}"
-  #         log_level: error
-  #         agent: promtail
-  #         env: development
-  #         __path__: /var/log/nginx/*/*error.log
-  #
-  #   pipeline_stages:
-  #     - match:
-  #         selector: '{log_level="error"}'
-  #         stages:
-  #         # parse error.log
-  #         - regex:
-  #             expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2}\ \d{2}:\d{2}:\d{2})\ \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\]\ (?P<process_id>\d+)\#(?P<thread_id>\d+):\ \*(?P<connection_id>\d+)\ (?P<error>.+?)(?:\ while\ (?P<context>.+?))?,\ client:\ (?P<client_ip>\d+\.\d+\.\d+\.\d+),\ server:\ (?P<server>.+?)(?:,\ request:\ \"(?P<request_method>[A-Z]+?)\ (?P<request_path>\/.+?)\ (?P<request_protocol>.+?)\")?(?:,\ upstream:\ \"(?P<upstream>.+?)\")?(?:,\ host:\ \"(?P<host>.+?)\")?(?:,\ referrer:\ \"(?P<referrer>.+?)\")?$'
-  #         - labels:
-  #             timestamp:
-  #             severity:
-  #             process_id:
-  #             thread_id:
-  #             connection_id:
-  #             error:
-  #             context:
-  #             client_ip:
-  #             server:
-  #             request_method:
-  #             request_path:
-  #             request_protocol:
-  #             upstream:
-  #             host:
-  #             referrer:
+  - job_name: syslog
+    syslog:
+      listen_address: 0.0.0.0:1514
+      labels:
+        job: "syslog"
+    relabel_configs:
+      - source_labels:
+          - __syslog_message_hostname
+        target_label: 'host'
 
 ...
-
-# https://regex101.com/r/oPEqMk/1
-#     ^(?P<timestamp>\d{4}/\d{2}/\d{2}\ \d{2}:\d{2}:\d{2})
-#     \ \[(?P<severity>emerg|alert|crit|error|warn|notice|info)\]
-#     \ (?P<process_id>\d+)
-#     \#(?P<thread_id>\d+):
-#     \ \*(?P<connection_id>\d+)
-#     \ (?P<error>.+?)
-#     (?:\ while\ (?P<context>.+?))?
-#     ,\ client:\ (?P<client_ip>\d+\.\d+\.\d+\.\d+)
-#     ,\ server:\ (?P<server>.+?)
-#     (?:,\ request:\ \"(?P<request_method>[A-Z]+?)
-#         \ (?P<request_path>\/.+?)
-#         \ (?P<request_protocol>.+?)\")?
-#     (?:,\ upstream:\ \"(?P<upstream>.+?)\")?
-#     (?:,\ host:\ \"(?P<host>.+?)\")?
-#     (?:,\ referrer:\ \"(?P<referrer>.+?)\")?
-#     $
