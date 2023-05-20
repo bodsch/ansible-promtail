@@ -40,12 +40,12 @@ nginx_vhosts:
   # HTTP
   # ssl: false
   # LE: false
-  default:
+  - name: default
     # Set to True if you want to redirect http to https
     ssl:
       enabled: false
 
-  nginx-status:
+  - name: nginx-status
     filename: 00-status
     state: present  # default: present
     enabled: true   # default: true
@@ -63,7 +63,7 @@ nginx_vhosts:
           allow 127.0.0.1;
           deny all;
 
-  10-monitoring.molecule.lan:
+  - name: 10-monitoring.molecule.lan
     state: present
     enabled: true
 
@@ -82,11 +82,10 @@ nginx_vhosts:
         file: /var/log/nginx/monitoring.molecule.lan/error.log
         loglevel: notice
 
-
   # HTTP
   # enabled
   # present
-  10-bar.molecule.lan:
+  - name: 10-bar.molecule.lan
     state: absent
     enabled: false
 
@@ -113,7 +112,7 @@ nginx_vhosts:
   # absent
   # no letsencrypt
   # > 15-foo.molecule.lan.conf
-  15-foo.molecule.lan:
+  - name: 15-foo.molecule.lan
     state: present
     enabled: true
 
@@ -135,7 +134,7 @@ nginx_vhosts:
   # HTTPS
   # enabled
   # present
-  20-bar.molecule.lan:
+  - name: 20-bar.molecule.lan
     state: present
     enabled: true
 
