@@ -1,6 +1,7 @@
 {% if promtail_server is defined and
       promtail_server | length > 0 %}
   {% set _data = promtail_server %}
+
 server:
     {# http #}
     {% if _data.http is defined and

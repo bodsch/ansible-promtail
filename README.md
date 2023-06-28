@@ -17,7 +17,7 @@ Ansible role to setup [promtail](https://grafana.com/docs/loki/latest/clients/pr
 If `latest` is set for `promtail_version`, the role tries to install the latest release version.  
 **Please use this with caution, as incompatibilities between releases may occur!**
 
-The binaries are installed below `/usr/local/bin/glauth/${promtail_version}` and later linked to `/usr/bin`. 
+The binaries are installed below `/usr/local/bin/promtail/${promtail_version}` and later linked to `/usr/bin`. 
 This should make it possible to downgrade relatively safely.
 
 The downloaded archive is stored on the Ansible controller, unpacked and then the binaries are copied to the target system.
@@ -50,12 +50,11 @@ Tested on
 
 * Arch Linux
 * Debian based
-    - Debian 10 / 11
-    - Ubuntu 20.10
-* RedHat based
-    - Alma Linux 8
-    - Rocky Linux 8
-    - Oracle Linux 8
+    - Debian 10 / 11 / 12
+    - Ubuntu 20.04 / 22.04
+
+> **RedHat-based systems are no longer officially supported! May work, but does not have to.**
+
 
 ## usage
 

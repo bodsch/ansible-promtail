@@ -2,17 +2,11 @@
 # {{ ansible_managed }}
 
 {% include('promtail.d/server.j2') %}
-
 {% include('promtail.d/clients.j2') %}
-
 {% include('promtail.d/positions.j2') %}
-
 {% include('promtail.d/target_config.j2') %}
-
 {% include('promtail.d/limits_config.j2') %}
-
 {% include('promtail.d/tracing.j2') %}
-
 {% include('promtail.d/scrape_configs.j2') %}
 {#
 # promtail -print-config-stderr

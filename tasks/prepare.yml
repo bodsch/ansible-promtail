@@ -91,19 +91,6 @@
 - name: flush handlers
   ansible.builtin.meta: flush_handlers
 
-- name: detect installed promtail binary
-  ansible.builtin.stat:
-    path: "{{ promtail_install_path }}/promtail"
-  register: stat_promtail_binary
-
-- name: create download directory
-  become: false
-  delegate_to: "{{ promtail_delegate_to }}"
-  ansible.builtin.file:
-    path: "{{ promtail_local_tmp_directory }}"
-    state: directory
-    mode: 0750
-
 - name: user and group handling
   when:
     - promtail_system_user != "root" or promtail_system_group != "root"
@@ -146,14 +133,14 @@
     group: "{{ promtail_system_group }}"
     mode: 0755
 
-- name: fix directory rights for {{ promtail_install_path | dirname }}
-  ansible.builtin.file:
-    path: "{{ promtail_install_path | dirname }}"
-    state: directory
-    owner: "{{ promtail_system_user }}"
-    group: "{{ promtail_system_group }}"
-    mode: 0755
-    recurse: true
+# - name: fix directory rights for {{ promtail_install_path | dirname }}
+#   ansible.builtin.file:
+#     path: "{{ promtail_install_path | dirname }}"
+#     state: directory
+#     owner: "{{ promtail_system_user }}"
+#     group: "{{ promtail_system_group }}"
+#     mode: 0755
+#     recurse: true
 
 - name: merge promtail configuration between defaults and custom
   ansible.builtin.set_fact:
