@@ -3,6 +3,8 @@
 
 Ansible role to setup [promtail](https://grafana.com/docs/loki/latest/clients/promtail/).
 
+> Further development of this Ansible role has been moved to Collection [bodsch.grafana](https://github.com/bodsch/ansible-collection-grafana).
+> **This repository will therefore no longer be actively maintained.**
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/bodsch/ansible-promtail/main.yml?branch=main)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-promtail)][issues]
